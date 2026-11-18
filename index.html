@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#14161C">
-<meta name="app-build" content="bp-20261118-1">
+<meta name="app-build" content="bp-20261118-2">
 <title>혈압 기록</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -42,7 +42,8 @@ h1 small{margin-left:auto;font-size:13px;font-weight:500;color:var(--muted)}
 .msg{min-height:20px;text-align:center;font-size:13px;color:var(--muted);margin-top:8px}
 .sum{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:16px 0 4px}
 .sum div{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
-.sum span{display:block;font-size:12px;color:var(--muted);margin-bottom:2px}
+.sum .lb{display:block;font-size:12px;color:var(--muted);margin-bottom:2px}
+.sum[hidden],.more[hidden]{display:none!important}
 .sum b{font-size:18px;font-variant-numeric:tabular-nums}
 .sum i{font-style:normal;font-size:12px;color:var(--muted);margin-left:4px}
 h2{font-size:14px;color:var(--muted);font-weight:600;margin:20px 4px 8px;display:flex;align-items:center}
@@ -128,7 +129,7 @@ h2 button{margin-left:auto;border:1px solid var(--line);background:var(--card);c
     var sum=$("sum");
     if(wk.length){
       var s=avg(wk,"s"), d=avg(wk,"d"), p=avg(wk,"p"), g=grade(s,d);
-      sum.innerHTML='<div><span>최근 7일 평균 혈압</span><b><span style="color:var(--red)">'+s+'</span>/<span style="color:var(--blue)">'+d+'</span></b><i style="color:'+g.c+'">'+g.t+'</i></div><div><span>평균 맥박 · 기록</span><b style="color:var(--pulse)">'+(p||"–")+'</b><i>'+wk.length+'번</i></div>';
+      sum.innerHTML='<div><span class="lb">최근 7일 평균 혈압</span><b><span style="color:var(--red)">'+s+'</span>/<span style="color:var(--blue)">'+d+'</span></b><i style="color:'+g.c+'">'+g.t+'</i></div><div><span class="lb">평균 맥박 · 기록</span><b style="color:var(--pulse)">'+(p||"–")+'</b><i>'+wk.length+'번</i></div>';
       sum.hidden=false;
     }else sum.hidden=true;
     var list=$("list"); list.textContent="";
