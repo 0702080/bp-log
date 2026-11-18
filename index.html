@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14161C">
+<meta name="app-build" content="bp-20261118-1">
+<title>혈압 기록</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<style>
+:root{--bg:#14161C;--card:#1E212A;--line:#2C303B;--ink:#EEF0F5;--muted:#9AA0AE;--faint:#6B7180;
+  --red:#FF6B7A;--blue:#6FA8FF;--pulse:#FFB86B;--ok:#5FD39A;--warn:#F5C451;--high:#FF8A5B;--danger:#FF5C6C}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;-webkit-text-size-adjust:100%}
+body{padding:calc(14px + env(safe-area-inset-top)) 16px calc(28px + env(safe-area-inset-bottom));max-width:480px;margin:0 auto}
+button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+h1{font-size:20px;margin:4px 2px 14px;display:flex;align-items:center;gap:8px}
+h1 small{margin-left:auto;font-size:13px;font-weight:500;color:var(--muted)}
+.today{display:flex;gap:8px;margin-bottom:12px}
+.slot{flex:1;border:1px solid var(--line);border-radius:14px;padding:10px 12px;background:var(--card);display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
+.slot b{color:var(--ink);font-weight:600}
+.slot .ck{margin-left:auto;width:22px;height:22px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:13px;color:transparent}
+.slot.done{border-color:color-mix(in srgb,var(--ok) 55%,var(--line))}
+.slot.done .ck{background:var(--ok);border-color:var(--ok);color:#0D2016}
+.entry{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px 14px 14px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.now{text-align:center;color:var(--muted);font-size:14px;margin-bottom:12px;font-variant-numeric:tabular-nums}
+.now b{color:var(--ink);font-size:17px;font-weight:600}
+.fields{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.f{display:flex;flex-direction:column;align-items:center;gap:6px;border-radius:14px;padding:10px 4px 8px;background:#171920;border:1px solid var(--line)}
+.f:focus-within{border-color:var(--c)}
+.f label{font-size:12.5px;color:var(--c);font-weight:600;letter-spacing:.02em}
+.f input{width:100%;border:0;background:transparent;color:var(--ink);text-align:center;font-size:34px;font-weight:700;font-variant-numeric:tabular-nums;padding:0;outline:none;-moz-appearance:textfield}
+.f input::placeholder{color:#3B404C}
+.f input::-webkit-outer-spin-button,.f input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.f span{font-size:11px;color:var(--faint)}
+.f.sys{--c:var(--red)}.f.dia{--c:var(--blue)}.f.pul{--c:var(--pulse)}
+.save{width:100%;margin-top:12px;height:52px;border:0;border-radius:14px;background:linear-gradient(180deg,#4C8DFF,#3570E0);color:#fff;font-size:17px;font-weight:700;box-shadow:0 4px 0 #23489A,0 8px 18px rgba(0,0,0,.35);transition:transform .08s}
+.save:active{transform:translateY(3px);box-shadow:0 1px 0 #23489A}
+.save:disabled{opacity:.45}
+.msg{min-height:20px;text-align:center;font-size:13px;color:var(--muted);margin-top:8px}
+.sum{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:16px 0 4px}
+.sum div{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.sum span{display:block;font-size:12px;color:var(--muted);margin-bottom:2px}
+.sum b{font-size:18px;font-variant-numeric:tabular-nums}
+.sum i{font-style:normal;font-size:12px;color:var(--muted);margin-left:4px}
+h2{font-size:14px;color:var(--muted);font-weight:600;margin:20px 4px 8px;display:flex;align-items:center}
+h2 button{margin-left:auto;border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:16px;font-size:12px;padding:5px 12px}
+.day{margin-bottom:10px}
+.dh{font-size:13px;color:var(--muted);margin:0 4px 6px}
+.row{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:6px;position:relative}
+.tm{width:58px;flex:none;font-size:13px;color:var(--muted);line-height:1.25}
+.tm b{display:block;color:var(--ink);font-size:15px;font-variant-numeric:tabular-nums}
+.bp{flex:1;font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.bp .s{color:var(--red)}.bp .d{color:var(--blue)}.bp .sl{color:var(--faint);margin:0 2px;font-weight:400}
+.pu{font-size:15px;color:var(--pulse);font-variant-numeric:tabular-nums;white-space:nowrap}
+.pu small{font-size:11px;color:var(--faint)}
+.tag{flex:none;font-size:11.5px;font-weight:700;padding:3px 8px;border-radius:10px;color:#111;background:var(--t)}
+.del{position:absolute;inset:0;border:0;border-radius:14px;background:rgba(255,92,108,.92);color:#fff;font-weight:700;font-size:15px;display:none}
+.row.arm .del{display:block}
+.empty{text-align:center;color:var(--faint);font-size:14px;padding:24px 0}
+.legend{display:flex;flex-wrap:wrap;gap:6px 10px;justify-content:center;font-size:11.5px;color:var(--muted);margin-top:14px}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;vertical-align:-1px}
+.more{display:block;margin:6px auto 0;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:16px;padding:6px 14px;font-size:13px}
+</style>
+</head>
+<body>
+<h1>🩺 혈압 기록 <small id="dateNow"></small></h1>
+
+<div class="today">
+  <div class="slot" id="slotAm">🌅 <b>아침</b><span class="ck">✓</span></div>
+  <div class="slot" id="slotPm">🌙 <b>저녁</b><span class="ck">✓</span></div>
+</div>
+
+<form class="entry" id="form" autocomplete="off">
+  <div class="now">지금 <b id="clock"></b> 기록</div>
+  <div class="fields">
+    <div class="f sys"><label for="sys">수축기</label><input id="sys" type="number" inputmode="numeric" pattern="[0-9]*" min="50" max="260" placeholder="120" enterkeyhint="next"><span>mmHg</span></div>
+    <div class="f dia"><label for="dia">이완기</label><input id="dia" type="number" inputmode="numeric" pattern="[0-9]*" min="30" max="180" placeholder="80" enterkeyhint="next"><span>mmHg</span></div>
+    <div class="f pul"><label for="pul">맥박</label><input id="pul" type="number" inputmode="numeric" pattern="[0-9]*" min="30" max="220" placeholder="70" enterkeyhint="done"><span>회/분</span></div>
+  </div>
+  <button class="save" id="save" type="submit">저장</button>
+  <div class="msg" id="msg"></div>
+</form>
+
+<div class="sum" id="sum"></div>
+
+<h2>기록 <button type="button" id="csv">CSV 저장</button></h2>
+<div id="list"></div>
+<button class="more" id="more" type="button" hidden>더 보기</button>
+
+<div class="legend">
+  <span><i style="background:var(--ok)"></i>정상 &lt;120/80</span>
+  <span><i style="background:var(--warn)"></i>주의 120~129</span>
+  <span><i style="background:var(--high)"></i>전단계 130~139/80~89</span>
+  <span><i style="background:var(--danger)"></i>고혈압 140/90 이상</span>
+</div>
+
+<script>
+(function(){
+  var KEY="bp-log-v1", show=14;
+  function $(id){return document.getElementById(id)}
+  function load(){try{var a=JSON.parse(localStorage.getItem(KEY)||"[]");return Array.isArray(a)?a:[]}catch(e){return []}}
+  function save(a){try{localStorage.setItem(KEY,JSON.stringify(a))}catch(e){alert("저장 공간이 부족해요")}}
+  function pad(n){return (n<10?"0":"")+n}
+  function dkey(t){var d=new Date(t);return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
+  var WD="일월화수목금토";
+  function dlabel(t){var d=new Date(t), k=dkey(t), today=dkey(Date.now()), yest=dkey(Date.now()-864e5);
+    var s=(d.getMonth()+1)+"월 "+d.getDate()+"일 ("+WD[d.getDay()]+")"; return k===today?"오늘 · "+s:k===yest?"어제 · "+s:s}
+  function hm(t){var d=new Date(t);return pad(d.getHours())+":"+pad(d.getMinutes())}
+  function ampm(t){return new Date(t).getHours()<15?"아침":"저녁"}
+  function grade(s,d){
+    if(s>=140||d>=90)return {t:"고혈압",c:"var(--danger)"};
+    if(s>=130||d>=80)return {t:"전단계",c:"var(--high)"};
+    if(s>=120)return {t:"주의",c:"var(--warn)"};
+    return {t:"정상",c:"var(--ok)"};
+  }
+  function tick(){var n=new Date(); $("clock").textContent=(n.getMonth()+1)+"월 "+n.getDate()+"일 "+WD[n.getDay()]+"요일 "+hm(n); $("dateNow").textContent=""}
+  function draw(){
+    var a=load().sort(function(x,y){return y.t-x.t}), today=dkey(Date.now());
+    var td=a.filter(function(x){return dkey(x.t)===today});
+    $("slotAm").classList.toggle("done",td.some(function(x){return ampm(x.t)==="아침"}));
+    $("slotPm").classList.toggle("done",td.some(function(x){return ampm(x.t)==="저녁"}));
+    // 최근 7일 평균
+    var wk=a.filter(function(x){return x.t>Date.now()-7*864e5});
+    function avg(arr,k){var v=arr.map(function(x){return x[k]}).filter(function(n){return n>0}); return v.length?Math.round(v.reduce(function(p,c){return p+c},0)/v.length):0}
+    var sum=$("sum");
+    if(wk.length){
+      var s=avg(wk,"s"), d=avg(wk,"d"), p=avg(wk,"p"), g=grade(s,d);
+      sum.innerHTML='<div><span>최근 7일 평균 혈압</span><b><span style="color:var(--red)">'+s+'</span>/<span style="color:var(--blue)">'+d+'</span></b><i style="color:'+g.c+'">'+g.t+'</i></div><div><span>평균 맥박 · 기록</span><b style="color:var(--pulse)">'+(p||"–")+'</b><i>'+wk.length+'번</i></div>';
+      sum.hidden=false;
+    }else sum.hidden=true;
+    var list=$("list"); list.textContent="";
+    if(!a.length){list.innerHTML='<p class="empty">아직 기록이 없어요. 위에 숫자를 적고 저장을 눌러 보세요.</p>'; $("more").hidden=true; return}
+    var days=[], by={};
+    a.forEach(function(x){var k=dkey(x.t); if(!by[k]){by[k]=[]; days.push(k)} by[k].push(x)});
+    days.slice(0,show).forEach(function(k){
+      var box=document.createElement("div"); box.className="day";
+      box.innerHTML='<div class="dh">'+dlabel(by[k][0].t)+'</div>';
+      by[k].slice().sort(function(x,y){return x.t-y.t}).forEach(function(x){
+        var g=grade(x.s,x.d), r=document.createElement("div"); r.className="row"; r.dataset.t=x.t;
+        r.innerHTML='<div class="tm">'+ampm(x.t)+'<b>'+hm(x.t)+'</b></div><div class="bp"><span class="s">'+x.s+'</span><span class="sl">/</span><span class="d">'+x.d+'</span></div>'+
+          (x.p?'<div class="pu">♥ '+x.p+'</div>':'')+'<span class="tag" style="--t:'+g.c+'">'+g.t+'</span><button type="button" class="del">한 번 더 누르면 지워요</button>';
+        box.appendChild(r);
+      });
+      list.appendChild(box);
+    });
+    $("more").hidden=days.length<=show;
+  }
+  // 저장: 지금 시각이 기록 시간
+  $("form").addEventListener("submit",function(e){
+    e.preventDefault();
+    var s=+$("sys").value, d=+$("dia").value, p=+$("pul").value||0, m=$("msg");
+    if(!s||!d){m.textContent="수축기와 이완기를 적어 주세요"; (s?$("dia"):$("sys")).focus(); return}
+    if(s<50||s>260||d<30||d>180||(p&&(p<30||p>220))){m.textContent="숫자를 다시 확인해 주세요"; return}
+    if(d>=s){m.textContent="이완기가 수축기보다 작아야 해요"; return}
+    var t=Date.now(), a=load(); a.push({t:t,s:s,d:d,p:p}); save(a);
+    $("sys").value=""; $("dia").value=""; $("pul").value=""; document.activeElement&&document.activeElement.blur();
+    m.textContent="✓ "+hm(t)+" "+ampm(t)+" 기록을 저장했어요";
+    if(navigator.vibrate)navigator.vibrate(15);
+    draw(); setTimeout(function(){if(m.textContent.indexOf("✓")===0)m.textContent=""},4000);
+  });
+  // 세 자리 다 치면 다음 칸으로 (수축기 3자리, 이완기 2~3자리)
+  $("sys").addEventListener("input",function(){if(this.value.length>=3)$("dia").focus()});
+  $("dia").addEventListener("input",function(){var v=this.value; if(v.length>=3||(v.length===2&&+v>=40&&v[0]!=="1"))$("pul").focus()});
+  ["sys","dia"].forEach(function(id){$(id).addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault(); (id==="sys"?$("dia"):$("pul")).focus()}})});
+  // 지우기: 기록을 누르면 '한 번 더 누르면 지워요'
+  $("list").addEventListener("click",function(e){
+    var r=e.target.closest(".row"); if(!r)return;
+    if(e.target.closest(".del")){var t=+r.dataset.t; save(load().filter(function(x){return x.t!==t})); draw(); return}
+    document.querySelectorAll(".row.arm").forEach(function(x){if(x!==r)x.classList.remove("arm")});
+    r.classList.add("arm"); setTimeout(function(){r.classList.remove("arm")},2500);
+  });
+  $("more").addEventListener("click",function(){show+=14; draw()});
+  $("csv").addEventListener("click",function(){
+    var a=load().sort(function(x,y){return x.t-y.t}); if(!a.length){$("msg").textContent="저장할 기록이 없어요";return}
+    var rows=["날짜,시간,구분,수축기,이완기,맥박"].concat(a.map(function(x){return dkey(x.t)+","+hm(x.t)+","+ampm(x.t)+","+x.s+","+x.d+","+(x.p||"")}));
+    var b=new Blob(["﻿"+rows.join("\n")],{type:"text/csv"}), u=URL.createObjectURL(b), l=document.createElement("a");
+    l.href=u; l.download="혈압기록-"+dkey(Date.now())+".csv"; document.body.appendChild(l); l.click(); setTimeout(function(){URL.revokeObjectURL(u); l.remove()},1000);
+  });
+  tick(); setInterval(tick,15000); draw();
+  document.addEventListener("visibilitychange",function(){if(!document.hidden){tick(); draw()}});
+  if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});
+})();
+</script>
+</body>
+</html>
